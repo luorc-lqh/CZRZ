@@ -922,25 +922,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 数据同步机制
 let syncInterval = null;
 let lastSyncTime = 0;
+let lastSyncHash = '';
 
 // 启动数据同步
 function startDataSync() {
     console.log('启动数据同步机制');
     
-    // 每30秒检查一次数据更新
+    // 立即执行一次同步
+    syncData();
+    
+    // 每10秒执行一次同步
     syncInterval = setInterval(async () => {
-        const now = Date.now();
-        if (now - lastSyncTime > 30000) { // 30秒
-            console.log('执行定时数据同步');
-            await syncData();
-            lastSyncTime = now;
-        }
-    }, 5000); // 每5秒检查一次是否需要同步
+        console.log('执行定时数据同步');
+        await syncData();
+    }, 10000); // 每10秒同步一次
+}
+
+// 计算数据哈希值
+function calculateDataHash(data) {
+    if (!data || data.length === 0) return '';
+    const ids = data.map(item => item.id).sort().join(',');
+    const dates = data.map(item => item.date + item.title).join(',');
+    return ids + '|' + dates;
 }
 
 // 同步数据
 async function syncData() {
     try {
+        console.log('开始同步数据，当前时间:', new Date().toLocaleString());
+        
         // 获取远程数据
         const { data: remoteLogs, error } = await supabaseClient
             .from('growth_logs')
@@ -952,14 +962,41 @@ async function syncData() {
             return;
         }
         
+        console.log('获取到远程数据，数量:', remoteLogs ? remoteLogs.length : 0);
+        console.log('本地数据数量:', logs.length);
+        
+        // 计算远程数据的哈希值
+        const remoteHash = calculateDataHash(remoteLogs);
+        const localHash = calculateDataHash(logs);
+        
+        console.log('远程数据哈希:', remoteHash);
+        console.log('本地数据哈希:', localHash);
+        
         // 检查数据是否有变化
-        if (remoteLogs && remoteLogs.length !== logs.length) {
-            console.log('检测到数据变化，重新加载数据');
-            await loadLogs();
-            showToast('数据已更新');
+        if (remoteHash !== localHash) {
+            console.log('检测到数据变化，更新本地数据');
+            
+            // 更新本地数据
+            logs = remoteLogs || [];
+            
+            // 保存到本地存储
+            localStorage.setItem('growthLogs', JSON.stringify(logs));
+            
+            // 更新UI
+            renderLogs();
+            updateStats();
+            
+            // 显示提示
+            showToast('数据已同步更新');
+            
+            console.log('数据同步完成');
         } else {
             console.log('数据无变化，跳过同步');
         }
+        
+        lastSyncTime = Date.now();
+        lastSyncHash = remoteHash;
+        
     } catch (error) {
         console.error('同步数据异常:', error);
     }
