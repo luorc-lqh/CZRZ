@@ -206,13 +206,15 @@ function bindEvents() {
         // 详情页按钮
         if (elements.editBtn) {
             elements.editBtn.addEventListener('click', () => {
+                const logId = currentLogId; // 先保存logId
                 closeDetailModal();
-                openModal(currentLogId);
+                openModal(logId);
             });
         }
         if (elements.deleteBtn) {
             elements.deleteBtn.addEventListener('click', () => {
-                closeDetailModal();
+                // 直接打开确认弹窗，不关闭详情弹窗
+                // 这样currentLogId不会被重置
                 openConfirmModal();
             });
         }
@@ -663,8 +665,14 @@ async function confirmDelete() {
     } finally {
         isLoading = false;
         console.log('删除操作结束，isLoading重置为:', isLoading);
+        
+        // 先关闭确认弹窗，再关闭详情弹窗
         closeConfirmModal();
         console.log('确认弹窗已关闭');
+        
+        // 无论删除成功还是失败，都关闭详情弹窗
+        closeDetailModal();
+        console.log('详情弹窗已关闭');
     }
 }
 
