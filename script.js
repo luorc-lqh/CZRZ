@@ -902,6 +902,15 @@ function showToast(message) {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await init();
+        
+        // 启动数据同步
+        startDataSync();
+        
+        // 页面获得焦点时重新加载数据
+        window.addEventListener('focus', async () => {
+            console.log('页面获得焦点，检查数据更新');
+            await loadLogs();
+        });
     } catch (error) {
         console.error('初始化失败:', error);
         // 即使初始化失败也要确保基本功能可用
@@ -909,3 +918,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateStats();
     }
 });
+
+// 数据同步机制
+let syncInterval = null;
+let lastSyncTime = 0;
+
+// 启动数据同步
+function startDataSync() {
+    console.log('启动数据同步机制');
+    
+    // 每30秒检查一次数据更新
+    syncInterval = setInterval(async () => {
+        const now = Date.now();
+        if (now - lastSyncTime > 30000) { // 30秒
+            console.log('执行定时数据同步');
+            await syncData();
+            lastSyncTime = now;
+        }
+    }, 5000); // 每5秒检查一次是否需要同步
+}
+
+// 同步数据
+async function syncData() {
+    try {
+        // 获取远程数据
+        const { data: remoteLogs, error } = await supabaseClient
+            .from('growth_logs')
+            .select('*')
+            .order('date', { ascending: false });
+        
+        if (error) {
+            console.error('同步数据失败:', error);
+            return;
+        }
+        
+        // 检查数据是否有变化
+        if (remoteLogs && remoteLogs.length !== logs.length) {
+            console.log('检测到数据变化，重新加载数据');
+            await loadLogs();
+            showToast('数据已更新');
+        } else {
+            console.log('数据无变化，跳过同步');
+        }
+    } catch (error) {
+        console.error('同步数据异常:', error);
+    }
+}
+
+// 停止数据同步
+function stopDataSync() {
+    if (syncInterval) {
+        clearInterval(syncInterval);
+        syncInterval = null;
+        console.log('数据同步已停止');
+    }
+}
+
+// 页面卸载时停止同步
+window.addEventListener('beforeunload', stopDataSync);
