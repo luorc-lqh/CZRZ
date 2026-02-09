@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 宝贝成长日志 🌟</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🌈</span>
+                    <h1>宝贝成长日志</h1>
+                </div>
+                <p class="subtitle">记录每一个珍贵瞬间</p>
+            </div>
+            <div class="floating-icons">
+                <span class="float-icon">🎈</span>
+                <span class="float-icon">⭐</span>
+                <span class="float-icon">🧸</span>
+                <span class="float-icon">🎨</span>
+                <span class="float-icon">🌸</span>
+            </div>
+        </header>
+
+        <!-- 统计卡片 -->
+        <section class="stats-section">
+            <div class="stat-card">
+                <div class="stat-icon">📖</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalLogs">0</span>
+                    <span class="stat-label">篇日志</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📸</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalPhotos">0</span>
+                    <span class="stat-label">张照片</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <span class="stat-number" id="daysRecorded">0</span>
+                    <span class="stat-label">天记录</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 添加日志按钮 -->
+        <div class="add-button-container">
+            <button class="add-btn" id="addLogBtn">
+                <span class="btn-icon">✨</span>
+                <span>记录新瞬间</span>
+            </button>
+        </div>
+
+        <!-- 日志列表 -->
+        <section class="logs-section">
+            <div class="section-header">
+                <h2>📝 成长足迹</h2>
+                <div class="filter-tabs">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="milestone">里程碑</button>
+                    <button class="filter-btn" data-filter="daily">日常</button>
+                    <button class="filter-btn" data-filter="photo">照片</button>
+                </div>
+            </div>
+            <div class="logs-grid" id="logsContainer">
+                <!-- 日志卡片将通过JS动态生成 -->
+            </div>
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🌱</div>
+                <p>还没有记录哦，快来添加第一篇成长日志吧！</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 添加/编辑日志弹窗 -->
+    <div class="modal" id="logModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">✨ 记录新瞬间</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form class="log-form" id="logForm">
+                <input type="hidden" id="logId">
+                
+                <div class="form-group">
+                    <label for="logDate">📅 日期</label>
+                    <input type="date" id="logDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="logTitle">📝 标题</label>
+                    <input type="text" id="logTitle" placeholder="例如：第一次走路" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="logCategory">🏷️ 分类</label>
+                    <select id="logCategory">
+                        <option value="milestone">🎯 里程碑</option>
+                        <option value="daily">🌟 日常</option>
+                        <option value="photo">📸 照片</option>
+                        <option value="growth">📏 成长数据</option>
+                        <option value="other">💝 其他</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="logHeight">📏 身高 (cm)</label>
+                        <input type="number" id="logHeight" placeholder="可选" step="0.1">
+                    </div>
+                    <div class="form-group half">
+                        <label for="logWeight">⚖️ 体重 (kg)</label>
+                        <input type="number" id="logWeight" placeholder="可选" step="0.1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="logContent">💭 内容</label>
+                    <textarea id="logContent" rows="4" placeholder="记录下这个特别的时刻..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>📸 照片</label>
+                    <div class="photo-upload" id="photoUpload">
+                        <input type="file" id="logPhoto" accept="image/*" multiple hidden>
+                        <div class="upload-area" id="uploadArea">
+                            <span class="upload-icon">📷</span>
+                            <p>点击或拖拽上传照片</p>
+                            <span class="upload-hint">支持 JPG、PNG 格式</span>
+                        </div>
+                        <div class="photo-preview" id="photoPreview"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>🏷️ 标签</label>
+                    <div class="tags-input" id="tagsInput">
+                        <div class="tags-container" id="tagsContainer"></div>
+                        <input type="text" id="tagInput" placeholder="添加标签，按回车确认">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 查看详情弹窗 -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content detail-content">
+            <div class="modal-header">
+                <h3 id="detailTitle"></h3>
+                <button class="close-btn" id="closeDetail">&times;</button>
+            </div>
+            <div class="detail-body" id="detailBody">
+                <!-- 详情内容将通过JS动态生成 -->
+            </div>
+            <div class="detail-actions">
+                <button class="btn-secondary" id="editBtn">✏️ 编辑</button>
+                <button class="btn-danger" id="deleteBtn">🗑️ 删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content confirm-content">
+            <div class="confirm-icon">⚠️</div>
+            <h3>确认删除？</h3>
+            <p>删除后将无法恢复，是否继续？</p>
+            <div class="confirm-actions">
+                <button class="btn-secondary" id="cancelDelete">取消</button>
+                <button class="btn-danger" id="confirmDelete">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✅</span>
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
