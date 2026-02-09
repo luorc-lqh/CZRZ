@@ -5,7 +5,7 @@ const supabaseUrl = 'https://htvtubwiwgzwqqtqpuhp.supabase.co';
 const supabaseKey = 'sb_publishable_6BqU8WoPUU0m4KgQwLsUtQ_dptYoRpW';
 
 // 初始化Supabase客户端
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // 数据存储
 let logs = [];
@@ -192,7 +192,7 @@ async function loadLogs() {
     isLoading = true;
     
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('growth_logs')
             .select('*')
             .order('date', { ascending: false });
@@ -238,7 +238,7 @@ async function saveLogs() {
 // 添加日志到Supabase
 async function addLog(logData) {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('growth_logs')
             .insert(logData)
             .select();
@@ -257,7 +257,7 @@ async function addLog(logData) {
 // 更新日志到Supabase
 async function updateLog(logData) {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('growth_logs')
             .update(logData)
             .eq('id', logData.id)
@@ -277,7 +277,7 @@ async function updateLog(logData) {
 // 删除日志从Supabase
 async function deleteLog(logId) {
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('growth_logs')
             .delete()
             .eq('id', logId);
