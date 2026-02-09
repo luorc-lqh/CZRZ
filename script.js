@@ -14,6 +14,7 @@ let currentLogId = null;
 let tempPhotos = [];
 let tempTags = [];
 let isLoading = false;
+let elements = {};
 
 // 分类配置
 const categoryConfig = {
@@ -24,47 +25,73 @@ const categoryConfig = {
     other: { label: '💝 其他', class: 'category-other' }
 };
 
-// DOM元素
-const elements = {
-    totalLogs: document.getElementById('totalLogs'),
-    totalPhotos: document.getElementById('totalPhotos'),
-    daysRecorded: document.getElementById('daysRecorded'),
-    logsContainer: document.getElementById('logsContainer'),
-    emptyState: document.getElementById('emptyState'),
-    addLogBtn: document.getElementById('addLogBtn'),
-    logModal: document.getElementById('logModal'),
-    detailModal: document.getElementById('detailModal'),
-    confirmModal: document.getElementById('confirmModal'),
-    closeModal: document.getElementById('closeModal'),
-    closeDetail: document.getElementById('closeDetail'),
-    cancelBtn: document.getElementById('cancelBtn'),
-    logForm: document.getElementById('logForm'),
-    modalTitle: document.getElementById('modalTitle'),
-    logId: document.getElementById('logId'),
-    logDate: document.getElementById('logDate'),
-    logTitle: document.getElementById('logTitle'),
-    logCategory: document.getElementById('logCategory'),
-    logHeight: document.getElementById('logHeight'),
-    logWeight: document.getElementById('logWeight'),
-    logContent: document.getElementById('logContent'),
-    logPhoto: document.getElementById('logPhoto'),
-    uploadArea: document.getElementById('uploadArea'),
-    photoPreview: document.getElementById('photoPreview'),
-    tagsContainer: document.getElementById('tagsContainer'),
-    tagInput: document.getElementById('tagInput'),
-    detailTitle: document.getElementById('detailTitle'),
-    detailBody: document.getElementById('detailBody'),
-    editBtn: document.getElementById('editBtn'),
-    deleteBtn: document.getElementById('deleteBtn'),
-    cancelDelete: document.getElementById('cancelDelete'),
-    confirmDelete: document.getElementById('confirmDelete'),
-    toast: document.getElementById('toast'),
-    toastMessage: document.getElementById('toastMessage'),
-    filterBtns: document.querySelectorAll('.filter-btn')
-};
+// 获取DOM元素
+function getElements() {
+    elements = {
+        totalLogs: document.getElementById('totalLogs'),
+        totalPhotos: document.getElementById('totalPhotos'),
+        daysRecorded: document.getElementById('daysRecorded'),
+        logsContainer: document.getElementById('logsContainer'),
+        emptyState: document.getElementById('emptyState'),
+        addLogBtn: document.getElementById('addLogBtn'),
+        logModal: document.getElementById('logModal'),
+        detailModal: document.getElementById('detailModal'),
+        confirmModal: document.getElementById('confirmModal'),
+        closeModal: document.getElementById('closeModal'),
+        closeDetail: document.getElementById('closeDetail'),
+        cancelBtn: document.getElementById('cancelBtn'),
+        logForm: document.getElementById('logForm'),
+        modalTitle: document.getElementById('modalTitle'),
+        logId: document.getElementById('logId'),
+        logDate: document.getElementById('logDate'),
+        logTitle: document.getElementById('logTitle'),
+        logCategory: document.getElementById('logCategory'),
+        logHeight: document.getElementById('logHeight'),
+        logWeight: document.getElementById('logWeight'),
+        logContent: document.getElementById('logContent'),
+        logPhoto: document.getElementById('logPhoto'),
+        uploadArea: document.getElementById('uploadArea'),
+        photoPreview: document.getElementById('photoPreview'),
+        tagsContainer: document.getElementById('tagsContainer'),
+        tagInput: document.getElementById('tagInput'),
+        detailTitle: document.getElementById('detailTitle'),
+        detailBody: document.getElementById('detailBody'),
+        editBtn: document.getElementById('editBtn'),
+        deleteBtn: document.getElementById('deleteBtn'),
+        cancelDelete: document.getElementById('cancelDelete'),
+        confirmDelete: document.getElementById('confirmDelete'),
+        toast: document.getElementById('toast'),
+        toastMessage: document.getElementById('toastMessage'),
+        filterBtns: document.querySelectorAll('.filter-btn')
+    };
+}
+
+// 检查DOM元素是否都存在
+function checkElements() {
+    const missingElements = [];
+    for (const [key, element] of Object.entries(elements)) {
+        if (!element) {
+            missingElements.push(key);
+        }
+    }
+    if (missingElements.length > 0) {
+        console.error('缺少DOM元素:', missingElements);
+        return false;
+    }
+    return true;
+}
 
 // 初始化
 async function init() {
+    // 获取DOM元素
+    getElements();
+    
+    // 检查元素是否存在
+    if (!checkElements()) {
+        console.error('DOM元素加载失败，无法初始化应用');
+        return;
+    }
+    
     // 设置今天为默认日期
     elements.logDate.valueAsDate = new Date();
     
