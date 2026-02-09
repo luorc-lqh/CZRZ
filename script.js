@@ -109,82 +109,127 @@ async function init() {
 
 // 绑定事件
 function bindEvents() {
-    // 添加日志按钮
-    elements.addLogBtn.addEventListener('click', () => openModal());
+    console.log('开始绑定事件...');
     
-    // 关闭弹窗
-    elements.closeModal.addEventListener('click', closeModal);
-    elements.closeDetail.addEventListener('click', closeDetailModal);
-    elements.cancelBtn.addEventListener('click', closeModal);
-    
-    // 点击弹窗外部关闭
-    elements.logModal.addEventListener('click', (e) => {
-        if (e.target === elements.logModal) closeModal();
-    });
-    elements.detailModal.addEventListener('click', (e) => {
-        if (e.target === elements.detailModal) closeDetailModal();
-    });
-    elements.confirmModal.addEventListener('click', (e) => {
-        if (e.target === elements.confirmModal) closeConfirmModal();
-    });
-    
-    // 表单提交
-    elements.logForm.addEventListener('submit', handleSubmit);
-    
-    // 照片上传
-    elements.uploadArea.addEventListener('click', () => elements.logPhoto.click());
-    elements.logPhoto.addEventListener('change', handlePhotoSelect);
-    
-    // 拖拽上传
-    elements.uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        elements.uploadArea.style.background = 'var(--primary-light)';
-    });
-    elements.uploadArea.addEventListener('dragleave', () => {
-        elements.uploadArea.style.background = '';
-    });
-    elements.uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        elements.uploadArea.style.background = '';
-        handleFiles(e.dataTransfer.files);
-    });
-    
-    // 标签输入
-    elements.tagInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const tag = elements.tagInput.value.trim();
-            if (tag && !tempTags.includes(tag)) {
-                tempTags.push(tag);
-                renderTags();
-                elements.tagInput.value = '';
-            }
+    try {
+        // 添加日志按钮
+        if (elements.addLogBtn) {
+            elements.addLogBtn.addEventListener('click', () => {
+                console.log('点击了记录新瞬间按钮');
+                openModal();
+            });
+            console.log('添加日志按钮事件绑定成功');
+        } else {
+            console.error('addLogBtn元素不存在');
         }
-    });
-    
-    // 筛选按钮
-    elements.filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            elements.filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = btn.dataset.filter;
-            renderLogs();
-        });
-    });
-    
-    // 详情页按钮
-    elements.editBtn.addEventListener('click', () => {
-        closeDetailModal();
-        openModal(currentLogId);
-    });
-    elements.deleteBtn.addEventListener('click', () => {
-        closeDetailModal();
-        openConfirmModal();
-    });
-    
-    // 确认删除
-    elements.cancelDelete.addEventListener('click', closeConfirmModal);
-    elements.confirmDelete.addEventListener('click', confirmDelete);
+        
+        // 关闭弹窗
+        if (elements.closeModal) {
+            elements.closeModal.addEventListener('click', closeModal);
+        }
+        if (elements.closeDetail) {
+            elements.closeDetail.addEventListener('click', closeDetailModal);
+        }
+        if (elements.cancelBtn) {
+            elements.cancelBtn.addEventListener('click', closeModal);
+        }
+        
+        // 点击弹窗外部关闭
+        if (elements.logModal) {
+            elements.logModal.addEventListener('click', (e) => {
+                if (e.target === elements.logModal) closeModal();
+            });
+        }
+        if (elements.detailModal) {
+            elements.detailModal.addEventListener('click', (e) => {
+                if (e.target === elements.detailModal) closeDetailModal();
+            });
+        }
+        if (elements.confirmModal) {
+            elements.confirmModal.addEventListener('click', (e) => {
+                if (e.target === elements.confirmModal) closeConfirmModal();
+            });
+        }
+        
+        // 表单提交
+        if (elements.logForm) {
+            elements.logForm.addEventListener('submit', handleSubmit);
+        }
+        
+        // 照片上传
+        if (elements.uploadArea && elements.logPhoto) {
+            elements.uploadArea.addEventListener('click', () => elements.logPhoto.click());
+            elements.logPhoto.addEventListener('change', handlePhotoSelect);
+            
+            // 拖拽上传
+            elements.uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                elements.uploadArea.style.background = 'var(--primary-light)';
+            });
+            elements.uploadArea.addEventListener('dragleave', () => {
+                elements.uploadArea.style.background = '';
+            });
+            elements.uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                elements.uploadArea.style.background = '';
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+        
+        // 标签输入
+        if (elements.tagInput) {
+            elements.tagInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const tag = elements.tagInput.value.trim();
+                    if (tag && !tempTags.includes(tag)) {
+                        tempTags.push(tag);
+                        renderTags();
+                        elements.tagInput.value = '';
+                    }
+                }
+            });
+        }
+        
+        // 筛选按钮
+        if (elements.filterBtns && elements.filterBtns.length > 0) {
+            elements.filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    elements.filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    renderLogs();
+                });
+            });
+        }
+        
+        // 详情页按钮
+        if (elements.editBtn) {
+            elements.editBtn.addEventListener('click', () => {
+                closeDetailModal();
+                openModal(currentLogId);
+            });
+        }
+        if (elements.deleteBtn) {
+            elements.deleteBtn.addEventListener('click', () => {
+                closeDetailModal();
+                openConfirmModal();
+            });
+        }
+        
+        // 确认删除
+        if (elements.cancelDelete) {
+            elements.cancelDelete.addEventListener('click', closeConfirmModal);
+        }
+        if (elements.confirmDelete) {
+            elements.confirmDelete.addEventListener('click', confirmDelete);
+        }
+        
+        console.log('事件绑定完成');
+    } catch (error) {
+        console.error('事件绑定失败:', error);
+        showToast('事件绑定失败，请刷新页面重试');
+    }
 }
 
 // 从Supabase加载日志
@@ -342,44 +387,74 @@ async function addSampleData() {
 
 // 打开弹窗
 function openModal(logId = null) {
-    tempPhotos = [];
-    tempTags = [];
-    renderPhotoPreview();
-    renderTags();
+    console.log('开始打开弹窗，logId:', logId);
     
-    if (logId) {
-        // 编辑模式
-        const log = logs.find(l => l.id === logId);
-        if (log) {
-            elements.modalTitle.textContent = '✏️ 编辑日志';
-            elements.logId.value = log.id;
-            elements.logDate.value = log.date;
-            elements.logTitle.value = log.title;
-            elements.logCategory.value = log.category;
-            elements.logHeight.value = log.height || '';
-            elements.logWeight.value = log.weight || '';
-            elements.logContent.value = log.content || '';
-            tempPhotos = log.photos || [];
-            tempTags = log.tags || [];
-            renderPhotoPreview();
-            renderTags();
+    try {
+        tempPhotos = [];
+        tempTags = [];
+        renderPhotoPreview();
+        renderTags();
+        
+        if (logId) {
+            // 编辑模式
+            console.log('编辑模式，查找日志:', logId);
+            const log = logs.find(l => l.id === logId);
+            if (log) {
+                console.log('找到日志:', log.title);
+                if (elements.modalTitle) elements.modalTitle.textContent = '✏️ 编辑日志';
+                if (elements.logId) elements.logId.value = log.id;
+                if (elements.logDate) elements.logDate.value = log.date;
+                if (elements.logTitle) elements.logTitle.value = log.title;
+                if (elements.logCategory) elements.logCategory.value = log.category;
+                if (elements.logHeight) elements.logHeight.value = log.height || '';
+                if (elements.logWeight) elements.logWeight.value = log.weight || '';
+                if (elements.logContent) elements.logContent.value = log.content || '';
+                tempPhotos = log.photos || [];
+                tempTags = log.tags || [];
+                renderPhotoPreview();
+                renderTags();
+            } else {
+                console.error('未找到日志:', logId);
+                showToast('未找到日志');
+                return;
+            }
+        } else {
+            // 添加模式
+            console.log('添加模式');
+            if (elements.modalTitle) elements.modalTitle.textContent = '✨ 记录新瞬间';
+            if (elements.logForm) elements.logForm.reset();
+            if (elements.logId) elements.logId.value = '';
+            if (elements.logDate) elements.logDate.valueAsDate = new Date();
         }
-    } else {
-        // 添加模式
-        elements.modalTitle.textContent = '✨ 记录新瞬间';
-        elements.logForm.reset();
-        elements.logId.value = '';
-        elements.logDate.valueAsDate = new Date();
+        
+        if (elements.logModal) {
+            elements.logModal.classList.add('show');
+            console.log('弹窗已显示');
+        } else {
+            console.error('logModal元素不存在');
+            showToast('弹窗元素不存在');
+            return;
+        }
+        
+        document.body.style.overflow = 'hidden';
+        console.log('openModal函数执行完成');
+    } catch (error) {
+        console.error('openModal函数执行失败:', error);
+        showToast('打开弹窗失败，请重试');
     }
-    
-    elements.logModal.classList.add('show');
-    document.body.style.overflow = 'hidden';
 }
 
 // 关闭弹窗
 function closeModal() {
-    elements.logModal.classList.remove('show');
-    document.body.style.overflow = '';
+    console.log('关闭弹窗');
+    try {
+        if (elements.logModal) {
+            elements.logModal.classList.remove('show');
+        }
+        document.body.style.overflow = '';
+    } catch (error) {
+        console.error('关闭弹窗失败:', error);
+    }
 }
 
 // 打开详情弹窗
