@@ -321,19 +321,24 @@ async function updateLog(logData) {
 
 // 删除日志从Supabase
 async function deleteLog(logId) {
+    console.log('执行deleteLog函数，删除ID为', logId, '的日志');
+    
     try {
+        console.log('调用Supabase删除API');
         const { error } = await supabaseClient
             .from('growth_logs')
             .delete()
             .eq('id', logId);
         
         if (error) {
-            console.error('删除日志失败:', error);
+            console.error('Supabase删除失败:', error);
             return false;
         }
+        
+        console.log('Supabase删除成功');
         return true;
     } catch (error) {
-        console.error('网络错误:', error);
+        console.error('删除过程中发生网络错误:', error);
         return false;
     }
 }
@@ -459,131 +464,207 @@ function closeModal() {
 
 // 打开详情弹窗
 function openDetailModal(logId) {
-    const log = logs.find(l => l.id === logId);
-    if (!log) return;
+    console.log('打开详情弹窗，logId:', logId);
     
-    currentLogId = logId;
-    elements.detailTitle.textContent = log.title;
-    
-    const category = categoryConfig[log.category];
-    const hasPhotos = log.photos && log.photos.length > 0;
-    const hasGrowth = log.height || log.weight;
-    
-    let html = '';
-    
-    // 图片或占位符
-    if (hasPhotos) {
-        html += `<img src="${log.photos[0]}" class="detail-image" alt="${log.title}">`;
-    } else {
-        const icons = { milestone: '🎯', daily: '🌟', photo: '📸', growth: '📏', other: '💝' };
-        html += `<div class="detail-placeholder">${icons[log.category] || '💝'}</div>`;
-    }
-    
-    // 元信息
-    html += `
-        <div class="detail-meta">
-            <div class="detail-meta-item">
-                <span>📅</span>
-                <span>${formatDate(log.date)}</span>
-            </div>
-            <div class="detail-meta-item">
-                <span>${category.label.split(' ')[0]}</span>
-                <span class="${category.class}" style="padding: 4px 12px; border-radius: 15px;">${category.label.split(' ')[1]}</span>
-            </div>
-        </div>
-    `;
-    
-    // 成长数据
-    if (hasGrowth) {
+    try {
+        const log = logs.find(l => l.id === logId);
+        if (!log) {
+            console.error('未找到日志:', logId);
+            showToast('未找到日志');
+            return;
+        }
+        
+        currentLogId = logId;
+        console.log('设置currentLogId:', currentLogId);
+        
+        if (elements.detailTitle) {
+            elements.detailTitle.textContent = log.title;
+        }
+        
+        const category = categoryConfig[log.category];
+        const hasPhotos = log.photos && log.photos.length > 0;
+        const hasGrowth = log.height || log.weight;
+        
+        let html = '';
+        
+        // 图片或占位符
+        if (hasPhotos) {
+            html += `<img src="${log.photos[0]}" class="detail-image" alt="${log.title}">`;
+        } else {
+            const icons = { milestone: '🎯', daily: '🌟', photo: '📸', growth: '📏', other: '💝' };
+            html += `<div class="detail-placeholder">${icons[log.category] || '💝'}</div>`;
+        }
+        
+        // 元信息
         html += `
-            <div class="detail-growth">
-                <h4>📊 成长数据</h4>
-                <div class="growth-items">
-                    ${log.height ? `
-                        <div class="growth-item">
-                            <span class="growth-icon">📏</span>
-                            <div>
-                                <div class="growth-value">${log.height} cm</div>
-                                <div class="growth-label">身高</div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${log.weight ? `
-                        <div class="growth-item">
-                            <span class="growth-icon">⚖️</span>
-                            <div>
-                                <div class="growth-value">${log.weight} kg</div>
-                                <div class="growth-label">体重</div>
-                            </div>
-                        </div>
-                    ` : ''}
+            <div class="detail-meta">
+                <div class="detail-meta-item">
+                    <span>📅</span>
+                    <span>${formatDate(log.date)}</span>
+                </div>
+                <div class="detail-meta-item">
+                    <span>${category.label.split(' ')[0]}</span>
+                    <span class="${category.class}" style="padding: 4px 12px; border-radius: 15px;">${category.label.split(' ')[1]}</span>
                 </div>
             </div>
         `;
+        
+        // 成长数据
+        if (hasGrowth) {
+            html += `
+                <div class="detail-growth">
+                    <h4>📊 成长数据</h4>
+                    <div class="growth-items">
+                        ${log.height ? `
+                            <div class="growth-item">
+                                <span class="growth-icon">📏</span>
+                                <div>
+                                    <div class="growth-value">${log.height} cm</div>
+                                    <div class="growth-label">身高</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${log.weight ? `
+                            <div class="growth-item">
+                                <span class="growth-icon">⚖️</span>
+                                <div>
+                                    <div class="growth-value">${log.weight} kg</div>
+                                    <div class="growth-label">体重</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 内容
+        if (log.content) {
+            html += `<div class="detail-content-text">${log.content}</div>`;
+        }
+        
+        // 标签
+        if (log.tags && log.tags.length > 0) {
+            html += `
+                <div class="detail-tags">
+                    ${log.tags.map(tag => `<span class="detail-tag">#${tag}</span>`).join('')}
+                </div>
+            `;
+        }
+        
+        if (elements.detailBody) {
+            elements.detailBody.innerHTML = html;
+        }
+        
+        if (elements.detailModal) {
+            elements.detailModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            console.log('详情弹窗已显示');
+        } else {
+            console.error('detailModal元素不存在');
+            showToast('弹窗元素不存在');
+        }
+    } catch (error) {
+        console.error('打开详情弹窗失败:', error);
+        showToast('打开详情失败，请重试');
     }
-    
-    // 内容
-    if (log.content) {
-        html += `<div class="detail-content-text">${log.content}</div>`;
-    }
-    
-    // 标签
-    if (log.tags && log.tags.length > 0) {
-        html += `
-            <div class="detail-tags">
-                ${log.tags.map(tag => `<span class="detail-tag">#${tag}</span>`).join('')}
-            </div>
-        `;
-    }
-    
-    elements.detailBody.innerHTML = html;
-    elements.detailModal.classList.add('show');
-    document.body.style.overflow = 'hidden';
 }
 
 // 关闭详情弹窗
 function closeDetailModal() {
-    elements.detailModal.classList.remove('show');
-    document.body.style.overflow = '';
-    currentLogId = null;
+    console.log('关闭详情弹窗');
+    try {
+        if (elements.detailModal) {
+            elements.detailModal.classList.remove('show');
+        }
+        document.body.style.overflow = '';
+        currentLogId = null;
+        console.log('详情弹窗已关闭，currentLogId重置为:', currentLogId);
+    } catch (error) {
+        console.error('关闭详情弹窗失败:', error);
+    }
 }
 
 // 打开确认弹窗
 function openConfirmModal() {
-    elements.confirmModal.classList.add('show');
+    console.log('打开确认弹窗');
+    try {
+        if (elements.confirmModal) {
+            elements.confirmModal.classList.add('show');
+            console.log('确认弹窗已显示');
+        } else {
+            console.error('confirmModal元素不存在');
+            showToast('弹窗元素不存在');
+        }
+    } catch (error) {
+        console.error('打开确认弹窗失败:', error);
+        showToast('打开确认弹窗失败，请重试');
+    }
 }
 
 // 关闭确认弹窗
 function closeConfirmModal() {
-    elements.confirmModal.classList.remove('show');
+    console.log('关闭确认弹窗');
+    try {
+        if (elements.confirmModal) {
+            elements.confirmModal.classList.remove('show');
+            console.log('确认弹窗已关闭');
+        }
+    } catch (error) {
+        console.error('关闭确认弹窗失败:', error);
+    }
 }
 
 // 确认删除
 async function confirmDelete() {
+    console.log('开始确认删除，currentLogId:', currentLogId);
+    
     if (!currentLogId) {
+        console.error('currentLogId为null，无法删除');
         closeConfirmModal();
         return;
     }
     
-    if (isLoading) return;
+    if (isLoading) {
+        console.log('正在加载中，跳过删除操作');
+        return;
+    }
+    
     isLoading = true;
+    console.log('删除操作开始执行');
     
     try {
+        console.log('调用deleteLog函数，删除ID为', currentLogId, '的日志');
         const success = await deleteLog(currentLogId);
+        console.log('deleteLog函数执行结果:', success);
+        
         if (success) {
+            console.log('删除成功，更新本地日志列表');
             logs = logs.filter(l => l.id !== currentLogId);
+            console.log('本地日志列表已更新，新长度:', logs.length);
+            
+            console.log('保存日志到本地存储');
             await saveLogs();
-            await loadLogs(); // 重新加载以确保数据同步
+            console.log('本地存储已更新');
+            
+            console.log('重新加载日志以确保数据同步');
+            await loadLogs();
+            console.log('日志重新加载完成');
+            
             showToast('日志已删除');
+            console.log('删除操作完成，显示成功提示');
         } else {
+            console.log('删除失败，显示失败提示');
             showToast('删除失败，请重试');
         }
     } catch (error) {
-        console.error('删除失败:', error);
+        console.error('删除操作异常:', error);
         showToast('操作失败，请重试');
     } finally {
         isLoading = false;
+        console.log('删除操作结束，isLoading重置为:', isLoading);
         closeConfirmModal();
+        console.log('确认弹窗已关闭');
     }
 }
 
